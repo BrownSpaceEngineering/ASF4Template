@@ -1,0 +1,2 @@
+#define SHORT_DELAY 100
+#define LONG_DELAY 1000

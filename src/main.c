@@ -1,4 +1,5 @@
 #include <atmel_start.h>
+#include <delay_periods.h>
 
 int main(void)
 {
@@ -10,16 +11,16 @@ int main(void)
 
 	while (1) {
 		REG_PORT_OUT1 &= ~(1<<30);
-		delay_ms(100);
+		delay_ms(SHORT_DELAY);
 		REG_PORT_OUT1 |= (1<<30);
-		delay_ms(100);
+		delay_ms(SHORT_DELAY);
 		REG_PORT_OUT1 &= ~(1<<30);
-		delay_ms(100);
+		delay_ms(SHORT_DELAY);
 		REG_PORT_OUT1 |= (1<<30);
-		delay_ms(100);
+		delay_ms(SHORT_DELAY);
 		REG_PORT_OUT1 &= ~(1<<30);
-		delay_ms(100);
+		delay_ms(SHORT_DELAY);
 		REG_PORT_OUT1 |= (1<<30);
-		delay_ms(1000);
+		delay_ms(LONG_DELAY);
 	}
 }

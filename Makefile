@@ -1,15 +1,12 @@
-# Generic Makefile for Atmel Start projects
-
 ################################################################################
 # Project configuration (edit if you add directories)
 ################################################################################
 
-# List the subdirectories for project source and header files
-PROJ_SRC_DIRS := \
-src
-
-PROJ_INCLUDE_DIRS := \
-src
+# Patterns to exclude folders from the project's source
+PROJ_SRC_EXCLUDES += \
+. \
+./.git% \
+./asf4% \
 
 # List the subdirectories for Atmel source and header files
 ATMEL_SRC_DIRS :=  \
@@ -41,7 +38,11 @@ asf4/hpl/sysctrl  \
 asf4/hpl/systick  \
 asf4/hri  \
 asf4/CMSIS/Include  \
-asf4/samd21a/include  \
+asf4/samd21a/include 
+
+################################################################################
+# Make configuration. Do not edit unless you know what you're doing!
+################################################################################
 
 # Top-level directories make should look for things in
 vpath %.c src/ asf4/
@@ -61,6 +62,10 @@ DEVICE_FLAG := __SAMD21J18A__
 # Variable generation. Do not edit unless you know what you're doing!
 ################################################################################
 
+# Find the project source folders and remove those matching PROJ_SRC_EXCLUDES
+ALL_PROJ_SRC_DIRS += $(shell find . -type d)
+PROJ_SRC_DIRS = $(filter-out $(PROJ_SRC_EXCLUDES),$(ALL_PROJ_SRC_DIRS))
+$(info Project source directories: ${PROJ_SRC_DIRS})
 # Find all source files in the directories
 ALL_SRC_DIRS := $(PROJ_SRC_DIRS) $(ATMEL_SRC_DIRS)
 SRC  := $(foreach dr, $(ALL_SRC_DIRS), $(wildcard $(dr)/*.[cS]))
@@ -71,7 +76,7 @@ OBJS_AS_ARGS := $(foreach ob, $(OBJS), "$(ob)")
 DEPS := $(OBJS:%.o=%.d)
 DEPS_AS_ARGS := $(foreach dep, $(DEPS), "$(dep)")
 # List the include files as linker args
-ALL_INCLUDE_DIRS := $(PROJ_INCLUDE_DIRS) $(ATMEL_INCLUDE_DIRS)
+ALL_INCLUDE_DIRS := $(PROJ_SRC_DIRS) $(ATMEL_INCLUDE_DIRS)
 INCLUDE_DIRS_AS_FLAGS := $(foreach dir, $(ALL_INCLUDE_DIRS), -I"$(dir)")
 
 # Outputs
