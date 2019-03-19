@@ -41,7 +41,7 @@ asf4/CMSIS/Include  \
 asf4/samd21a/include 
 
 ################################################################################
-# Make configuration. Do not edit unless you know what you're doing!
+# Make configuration.
 ################################################################################
 
 # Top-level directories make should look for things in
@@ -50,7 +50,8 @@ vpath %.s src/ asf4/
 vpath %.S src/ asf4/
 
 ############# Misc configuration #############
-OUTPUT_FILE_NAME := AtmelStart
+OUTPUT_FILE_NAME := Project
+OUTPUT_FOLDER := ./build/
 
 ############# Device configuration #############
 # not sure if changing these will work
@@ -80,8 +81,8 @@ ALL_INCLUDE_DIRS := $(PROJ_SRC_DIRS) $(ATMEL_INCLUDE_DIRS)
 INCLUDE_DIRS_AS_FLAGS := $(foreach dir, $(ALL_INCLUDE_DIRS), -I"$(dir)")
 
 # Outputs
-OUTPUT_FILE_PATH += $(OUTPUT_FILE_NAME).elf
-OUTPUT_FILE_PATH_AS_ARGS += $(OUTPUT_FILE_PATH)
+OUTPUT_FILE_PATH += $(OUTPUT_FOLDER)$(OUTPUT_FILE_NAME)
+$(shell $(MK_DIR) $(OUTPUT_FILE_PATH))
 
 ################################################################################
 # Makefile targets. Do not edit unless you know what you're doing!
@@ -118,22 +119,22 @@ all: $(ALL_DIRS) $(OUTPUT_FILE_PATH)
 $(OUTPUT_FILE_PATH): $(OBJS)
 	@echo Building target: $@
 	@echo Invoking: ARM/GNU Linker
-		$(QUOTE)arm-none-eabi-gcc$(QUOTE) -o $(OUTPUT_FILE_NAME).elf $(OBJS_AS_ARGS) \
+		$(QUOTE)arm-none-eabi-gcc$(QUOTE) -o $(OUTPUT_FILE_PATH).elf $(OBJS_AS_ARGS) \
 		-Wl,--start-group -lm -Wl,--end-group -mthumb \
-		-Wl,-Map="$(OUTPUT_FILE_NAME).map" --specs=nano.specs -Wl,--gc-sections -mcpu=$(MCPU) \
+		-Wl,-Map="$(OUTPUT_FILE_PATH).map" --specs=nano.specs -Wl,--gc-sections -mcpu=$(MCPU) \
 	 	$(INCLUDE_DIRS_AS_FLAGS) \
 		-T"$(DEVICE_LINKER_SCRIPT)" \
 		-L"$(basename $(DEVICE_LINKER_SCRIPT))"
 	@echo Finished building target: $@
 
-	"arm-none-eabi-objcopy" -O binary "$(OUTPUT_FILE_NAME).elf" "$(OUTPUT_FILE_NAME).bin"
+	"arm-none-eabi-objcopy" -O binary "$(OUTPUT_FILE_PATH).elf" "$(OUTPUT_FILE_PATH).bin"
 	"arm-none-eabi-objcopy" -O ihex -R .eeprom -R .fuse -R .lock -R .signature  \
-        "$(OUTPUT_FILE_NAME).elf" "$(OUTPUT_FILE_NAME).hex"
+        "$(OUTPUT_FILE_PATH).elf" "$(OUTPUT_FILE_PATH).hex"
 	"arm-none-eabi-objcopy" -j .eeprom --set-section-flags=.eeprom=alloc,load --change-section-lma \
-        .eeprom=0 --no-change-warnings -O binary "$(OUTPUT_FILE_NAME).elf" \
-        "$(OUTPUT_FILE_NAME).eep" || exit 0
-	"arm-none-eabi-objdump" -h -S "$(OUTPUT_FILE_NAME).elf" > "$(OUTPUT_FILE_NAME).lss"
-	"arm-none-eabi-size" "$(OUTPUT_FILE_NAME).elf"
+        .eeprom=0 --no-change-warnings -O binary "$(OUTPUT_FILE_PATH).elf" \
+        "$(OUTPUT_FILE_PATH).eep" || exit 0
+	"arm-none-eabi-objdump" -h -S "$(OUTPUT_FILE_PATH).elf" > "$(OUTPUT_FILE_PATH).lss"
+	"arm-none-eabi-size" "$(OUTPUT_FILE_PATH).elf"
 
 
 
@@ -178,8 +179,5 @@ $(ALL_DIRS):
 
 clean:
 	rm -f $(OBJS_AS_ARGS)
-	rm -f $(OUTPUT_FILE_PATH)
+	rm -f $(wildcard $(OUTPUT_FOLDER)*)
 	rm -f $(DEPS_AS_ARGS)
-	rm -f $(OUTPUT_FILE_NAME).a $(OUTPUT_FILE_NAME).hex $(OUTPUT_FILE_NAME).bin \
-        $(OUTPUT_FILE_NAME).lss $(OUTPUT_FILE_NAME).eep $(OUTPUT_FILE_NAME).map \
-        $(OUTPUT_FILE_NAME).srec
