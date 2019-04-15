@@ -122,6 +122,14 @@ INCLUDE_DIRS_AS_FLAGS := $(foreach dir, $(ALL_INCLUDE_DIRS), -I"$(dir)")
 OUTPUT_FILE_PATH += $(OUTPUT_FOLDER_PATH)$(OUTPUT_FILE_NAME)
 $(shell $(MK_DIR) $(OUTPUT_FOLDER_PATH))
 
+# Platform specific clean
+ifdef SystemRoot
+	CLEAN += del $(subst /,\,$(OBJS_AS_ARGS)) & del $(subst /,\,$(wildcard $(OUTPUT_FOLDER)/*)) & del $(subst /,\,$(DEPS_AS_ARGS))
+	
+else
+	CLEAN += rm -f $(OBJS_AS_ARGS); rm -f $(wildcard $(OUTPUT_FOLDER_PATH)*); rm -f $(DEPS_AS_ARGS)
+endif
+
 ################################################################################
 # Makefile targets. Do not edit unless you know what you're doing!
 ################################################################################
@@ -195,6 +203,4 @@ $(ALL_DIRS):
 	$(MK_DIR) "$@"
 
 clean:
-	rm -f $(OBJS_AS_ARGS)
-	rm -f $(wildcard $(OUTPUT_FOLDER_PATH)*)
-	rm -f $(DEPS_AS_ARGS)
+	$(CLEAN)
