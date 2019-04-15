@@ -51,7 +51,7 @@ vpath %.S src/ asf4/
 
 ############# Misc configuration #############
 OUTPUT_FILE_NAME := Project
-OUTPUT_FOLDER := ./build/
+OUTPUT_FOLDER := build
 
 ############# Device configuration #############
 # not sure if changing these will work
@@ -63,32 +63,7 @@ DEVICE_FLAG := __SAMD21J18A__
 # Variable generation. Do not edit unless you know what you're doing!
 ################################################################################
 
-# Find the project source folders and remove those matching PROJ_SRC_EXCLUDES
-ALL_PROJ_SRC_DIRS += $(shell find . -type d)
-PROJ_SRC_DIRS = $(filter-out $(PROJ_SRC_EXCLUDES),$(ALL_PROJ_SRC_DIRS))
-$(info Project source directories: ${PROJ_SRC_DIRS})
-# Find all source files in the directories
-ALL_SRC_DIRS := $(PROJ_SRC_DIRS) $(ATMEL_SRC_DIRS)
-SRC  := $(foreach dr, $(ALL_SRC_DIRS), $(wildcard $(dr)/*.[cS]))
-# Create all names of all corresponding object files
-OBJS := $(addsuffix .o,$(basename $(SRC)))
-OBJS_AS_ARGS := $(foreach ob, $(OBJS), "$(ob)")
-# Create all names of all corresponding dependency files
-DEPS := $(OBJS:%.o=%.d)
-DEPS_AS_ARGS := $(foreach dep, $(DEPS), "$(dep)")
-# List the include files as linker args
-ALL_INCLUDE_DIRS := $(PROJ_SRC_DIRS) $(ATMEL_INCLUDE_DIRS)
-INCLUDE_DIRS_AS_FLAGS := $(foreach dir, $(ALL_INCLUDE_DIRS), -I"$(dir)")
-
-# Outputs
-OUTPUT_FILE_PATH += $(OUTPUT_FOLDER)$(OUTPUT_FILE_NAME)
-$(shell $(MK_DIR) $(OUTPUT_FILE_PATH))
-
-################################################################################
-# Makefile targets. Do not edit unless you know what you're doing!
-################################################################################
-QUOTE := "
-
+# Platform specific makedir command.
 ifdef SystemRoot
 	SHELL = cmd.exe
 	MK_DIR = mkdir
@@ -109,6 +84,48 @@ else
 		MK_DIR = mkdir -p
 	endif
 endif
+
+# Platform specific output folder
+ifdef SystemRoot
+	OUTPUT_FOLDER_PATH = $(OUTPUT_FOLDER)$(shell echo \)
+else
+	OUTPUT_FOLDER_PATH = ./$(OUTPUT_FOLDER)/
+endif
+
+# Find the project source folders and remove those matching PROJ_SRC_EXCLUDES
+ifdef SystemRoot
+	SHELL = cmd.exe
+	ROOT = $(shell chdir)
+	ALL_PROJ_DIRS_WIN += $(shell dir /b/s/a:d)
+	ALL_PROJ_DIRS = $(subst \,/,$(subst $(ROOT),.,$(ALL_PROJ_DIRS_WIN)))
+	PROJ_SRC_DIRS_NIX += $(filter-out $(PROJ_SRC_EXCLUDES),$(ALL_PROJ_DIRS))
+	PROJ_SRC_DIRS += $(subst /,\,$(subst ./,,$(PROJ_SRC_DIRS_NIX)))
+else
+	ALL_PROJ_DIRS += $(shell find . -type d)
+	PROJ_SRC_DIRS += $(filter-out $(PROJ_SRC_EXCLUDES),$(ALL_PROJ_DIRS))
+endif
+$(info Project source directories: ${PROJ_SRC_DIRS})
+# Find all source files in the directories
+ALL_SRC_DIRS := $(PROJ_SRC_DIRS) $(ATMEL_SRC_DIRS)
+SRC  := $(foreach dr, $(ALL_SRC_DIRS), $(wildcard $(dr)/*.[cS]))
+# Create all names of all corresponding object files
+OBJS := $(addsuffix .o,$(basename $(SRC)))
+OBJS_AS_ARGS := $(foreach ob, $(OBJS), "$(ob)")
+# Create all names of all corresponding dependency files
+DEPS := $(OBJS:%.o=%.d)
+DEPS_AS_ARGS := $(foreach dep, $(DEPS), "$(dep)")
+# List the include files as linker args
+ALL_INCLUDE_DIRS := $(PROJ_SRC_DIRS) $(ATMEL_INCLUDE_DIRS)
+INCLUDE_DIRS_AS_FLAGS := $(foreach dir, $(ALL_INCLUDE_DIRS), -I"$(dir)")
+
+# Outputs
+OUTPUT_FILE_PATH += $(OUTPUT_FOLDER_PATH)$(OUTPUT_FILE_NAME)
+$(shell $(MK_DIR) $(OUTPUT_FOLDER_PATH))
+
+################################################################################
+# Makefile targets. Do not edit unless you know what you're doing!
+################################################################################
+QUOTE := "
 
 
 # All Target
@@ -179,5 +196,5 @@ $(ALL_DIRS):
 
 clean:
 	rm -f $(OBJS_AS_ARGS)
-	rm -f $(wildcard $(OUTPUT_FOLDER)*)
+	rm -f $(wildcard $(OUTPUT_FOLDER_PATH)*)
 	rm -f $(DEPS_AS_ARGS)
