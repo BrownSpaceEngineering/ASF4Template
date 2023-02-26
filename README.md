@@ -59,8 +59,13 @@ To upload, run and debug using vscode:
    
 ## Note for M1 (ARM) Macs:
 - gdb is not supported on M1, so you must run it with rosetta. use `arch -x86_64 /bin/bash (or zsh)` to run a terminal with rosetta
-- Then, install brew in /usr/local/opt by cloning the repository there.
-- Add /usr/local/opt to your path (by modifying ./zshrc or ./bashrc for example)
+(You can create an alias for easy switching by adding this to your .zshrc:
+```
+alias arm="env /usr/bin/arch -arm64 /bin/zsh --login"
+alias intel="env /usr/bin/arch -x86_64 /bin/zsh --login"
+```
+- Install brew for x86 using this command: `arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`
+- Add /usr/local/opt to your path -- the brew install script should recommend commands to do this for you
 - try to install gdb.. good luck
 
 3. Install openocd: `brew install openocd`
