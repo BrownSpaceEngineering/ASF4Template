@@ -4,6 +4,7 @@ A template project for BSE flight software projects. Built to work with Atmel ST
 Note: the Atmel START library in this repo is the bearbones minimal configuration; projects using this template should add required components and libraries.
 
 ## Building
+Make sure you have the toolchain installed (see below)
 Run `make`. The produced binaries will end up in `build/`
 
 ## Uploading to, running & debugging microcontroller
@@ -21,34 +22,34 @@ Tips:
 - To halt the code and get back to the debugger, do `Ctrl-C`
 - To rebuild the code without closing gdb, run `make` at the `(gdb)` prompt and repeat steps 5-7
 
-### Using Visual Studio Code
-You can use the vscode debugger interface instead of the gdb textual interface to debug programs by installing the [Cortex-Debug](https://github.com/Marus/cortex-debug) vscode extension from the marketplace.
-
-To upload, run and debug using vscode:
-1. Make sure you've built the code with `make`
-2. Make sure you're connected to the board or debugger
-3. Under the "Run and Debug" vscode menu on the left, click the green arrow to start debugging
-   - Make sure the "Debug (OpenOCD)" configuration is selected in the dropdown to the right of the arrow
-4. Wait for the debugger to start up (your bottom bar will turn orange once it does)
-   - If it doesn't start up, check the "Output" and "Debug Console" panes of vscode for error messages
-5. On the hovering toolbar that comes up, click the play button to run (continue) the program
-   - If you want to step through your code, set any breakpoints you need before this using the interface to the left of any code file you have open in vscode
-
 ## Installing the Toolchain
 ### Windows
-1. Install [Chocolatey](https://chocolatey.org/install#installing-chocolatey)
-2. Run `choco install make` from a shell with administrator priveledges (right click -> Run as administrator)
-3. Download and extract the "Arm GNU Toolchain for 32-bit Devices" for Windows from [here](https://www.microchip.com/mplab/avr-support/avr-and-arm-toolchains-c-compilers).
-   - The Microchip link asks you to make an account, so either ask your BSE leader for the BSE account credentials or create your own account.
-   - To avoid dealing with an account AND to get some newer GCC and (importantly) GDB features, use [this link](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads) instead.
-   - Make sure to add the bin folder to your path (e.g. Control Panel -> System -> Advanced system settings -> Environment variables -> Path -> Edit -> New -> `C:\Users\<username>\<path>\arm-none-eabi\bin`).
-4. Download and extract the newest Windows version of OpenOCD from [here](https://github.com/xpack-dev-tools/openocd-xpack/releases).
+Windows toolchain installation works by using WSL to build and run gdb, and the windows OS to run openocd.
+When building, run openocd on the windows host system, and everything else (make/gdb) inside of WSL
+####Inside WSL:
+1. Ensure you have WSL installed, or install it by running PowerShell as Administrator and typing `wsl --install`
+2. Once inside WSL, clone the repository into the WSL filesystem (it's over 10x faster this way)
+3. Install all nesecary packages by running `sudo apt install gcc-arm-none-eabi gdb-multiarch make build-essential -y`
+4. run `sudo ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb`
+5. run `make` inside the repository you wish to build -- With any luck it should build without any errors!
+
+####In Windows:
+1. Download and extract the newest Windows version of OpenOCD from [here](https://github.com/xpack-dev-tools/openocd-xpack/releases).
    - Make sure to add the bin folder to your path (e.g. `C:\Users\<username>\<path>\openocd-0.10.0\bin`). 
    - If you have trouble with that version you can also use [this site](http://www.freddiechopin.info/en/download/category/4-openocd) (you'll need something like [7-Zip](https://www.7-zip.org/)).
+2. Create a firewall rule to allow WSL to communicate with openocd:
+   - Open the Windows Firewall Advanced Security console by typing "wf.msc" into the Windows search box and pressing enter.
+   - In the console, click on "Inbound Rules" in the left-hand pane, and then click on "New Rule" in the right-hand pane.
+   - In the "New Inbound Rule Wizard" that appears, select "Port" as the rule type and click "Next".
+   - In the "Protocol and Ports" screen, select TCP as the protocol, and 3333 as the port number, and click "Next".
+   - Continue through the rest of the application, making sure that the rule is enabled on both public and private networks
+
 
 ### Mac OSX
+0. If you have an Apple Silicon Mac, follow the ARM Mac Instructions first
 1. Install homebrew [here](https://brew.sh/)
-2. Install ARM developer tools: 
+2. Install openocd: `brew install openocd`
+3. Install ARM developer tools: 
    ```
    brew tap PX4/homebrew-px4
    brew update
@@ -57,20 +58,20 @@ To upload, run and debug using vscode:
    ```
    If the last command fails but tells you to "Install the Command Line Tools" using `xcode-select --install`, do so.
    
-## Note for M1 (ARM) Macs:
-- gdb is not supported on M1, so you must run it with rosetta. use `arch -x86_64 /bin/bash (or zsh)` to run a terminal with rosetta
-(You can create an alias for easy switching by adding this to your .zshrc:
+## ARM (M1) Mac Instructions (In addition to normal instructions):
+NOTE: This assumes that zsh is the default terminal. Using bash may cause issues.
+1. Add the following lines to the end of the ~/.zshrc file (use `nano ./zshrc` to edit this file, and `CTRL`+`X`, then `Y`, then `Enter` to quit and save):
 ```
 alias arm="env /usr/bin/arch -arm64 /bin/zsh --login"
 alias intel="env /usr/bin/arch -x86_64 /bin/zsh --login"
 ```
-- Install brew for x86 using this command: `arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`
-- Add /usr/local/opt to your path -- the brew install script should recommend commands to do this for you
-- try to install gdb.. good luck
+2. run `source ~/.zshrc`
+3. switch into an intel terminal by running the `intel` command you just created, and verify that the `arch` command returns `i386`
+IMPORTANT: All commands beyond this point **MUST** be executed with an 'intel' terminal. You will need to switch to intel mode every time.
+4. Install brew in the intel terminal (if you already have brew installed in an ARM environment, hope and pray that there are no conflicts) by running the script at https://brew.sh/ and following the prompts
+5. Complete the rest of the MacOS instructions.
 
-3. Install openocd: `brew install openocd`
-
-### Linux (Ubuntu)
+### Linux (Ubuntu) -- (Not been tested for a while but probably still works)
 1. Install the "Arm GNU Toolchain for 32-bit Devices" for Linux from [here](https://www.microchip.com/mplab/avr-support/avr-and-arm-toolchains-c-compilers).
    - The Microchip link asks you to make an account, so either ask your BSE leader for the BSE account credentials or create your own account.
    - To avoid dealing with an account AND to get some newer GCC and (importantly) GDB features, use [this link](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads) instead. You may need to use the second-to-latest version if you can't find a 64-bit linux installer (i.e. "64-bit Tarball").
@@ -87,6 +88,19 @@ alias intel="env /usr/bin/arch -x86_64 /bin/zsh --login"
 1. Install the Arm GNU Toolchain as above.
 2. openocd is probably in your package manager, but if not there are instructions [here](http://openocd.org/getting-openocd/). Make sure to put (or symlink) the bin folder in your path.
 2. You may need to follow the instructions above to add the udev rules.
+
+### Using Visual Studio Code **(Untested!)**
+You can use the vscode debugger interface instead of the gdb textual interface to debug programs by installing the [Cortex-Debug](https://github.com/Marus/cortex-debug) vscode extension from the marketplace.
+
+To upload, run and debug using vscode:
+1. Make sure you've built the code with `make`
+2. Make sure you're connected to the board or debugger
+3. Under the "Run and Debug" vscode menu on the left, click the green arrow to start debugging
+   - Make sure the "Debug (OpenOCD)" configuration is selected in the dropdown to the right of the arrow
+4. Wait for the debugger to start up (your bottom bar will turn orange once it does)
+   - If it doesn't start up, check the "Output" and "Debug Console" panes of vscode for error messages
+5. On the hovering toolbar that comes up, click the play button to run (continue) the program
+   - If you want to step through your code, set any breakpoints you need before this using the interface to the left of any code file you have open in vscode
 
 ## Changing ASF library configuration
 Follow this procedure if you'd like to add Atmel Start ASF libraries, change chip configuration or pinout, etc.
