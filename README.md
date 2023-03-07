@@ -26,14 +26,15 @@ Tips:
 ### Windows
 Windows toolchain installation works by using WSL to build and run gdb, and the windows OS to run openocd.
 When building, run openocd on the windows host system, and everything else (make/gdb) inside of WSL
-####Inside WSL:
+
+###Inside WSL:
 1. Ensure you have WSL installed, or install it by running PowerShell as Administrator and typing `wsl --install`
 2. Once inside WSL, clone the repository into the WSL filesystem (it's over 10x faster this way)
 3. Install all nesecary packages by running `sudo apt install gcc-arm-none-eabi gdb-multiarch make build-essential -y`
 4. run `sudo ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb`
 5. run `make` inside the repository you wish to build -- With any luck it should build without any errors!
 
-####In Windows:
+###In Windows:
 1. Download and extract the newest Windows version of OpenOCD from [here](https://github.com/xpack-dev-tools/openocd-xpack/releases).
    - Make sure to add the bin folder to your path (e.g. `C:\Users\<username>\<path>\openocd-0.10.0\bin`). 
    - If you have trouble with that version you can also use [this site](http://www.freddiechopin.info/en/download/category/4-openocd) (you'll need something like [7-Zip](https://www.7-zip.org/)).
