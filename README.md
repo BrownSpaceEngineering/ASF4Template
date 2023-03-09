@@ -29,10 +29,14 @@ When building, run openocd on the windows host system, and everything else (make
 
 ###Inside WSL:
 1. Ensure you have WSL installed, or install it by running PowerShell as Administrator and typing `wsl --install`
-2. Once inside WSL, clone the repository into the WSL filesystem (it's over 10x faster this way)
-3. Install all nesecary packages by running `sudo apt install gcc-arm-none-eabi gdb-multiarch make build-essential -y`
-4. run `sudo ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb`
-5. run `make` inside the repository you wish to build -- With any luck it should build without any errors!
+2. Once inside WSL, clone the repository into the WSL filesystem rather than in the windows filesystem (it's over 10x faster this way, but can work in the windows filesystem as well)
+3. Edit the `openocd.cfg` file in the repository, and add the line: `bindto 0.0.0.0` at the very top.
+4. run the `hostname` command and take note of the output
+5. Edit the `Makefile` file in the repository, and replace every instance of "localhost" with "<hostname>.local" (where <hostname> is the output from the `hostname` command)
+6. Install all nesecary packages by running `sudo apt install gcc-arm-none-eabi gdb-multiarch make build-essential -y`
+7. run `sudo ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb`
+8. run `make` inside the repository you wish to build -- With any luck it should build without any errors!
+Notes: You can run VScode from inside wsl by typing `code .`
 
 ###In Windows:
 1. Download and extract the newest Windows version of OpenOCD from [here](https://github.com/xpack-dev-tools/openocd-xpack/releases).
